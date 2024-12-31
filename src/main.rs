@@ -39,7 +39,7 @@ impl Handler<MoveRequest> for AiPlayer {
     }
 }
 
-async fn run_game(player1: Addr<HumanPlayer>, player2: Addr<AiPlayer>) -> bool {
+async fn run_game(player1: Addr<impl Handler<MoveRequest>>, player2: Addr<impl Handler<MoveRequest>>) -> bool {
     let res1 = player1.send(MoveRequest {}).await.unwrap();
     let res2 = player2.send(MoveRequest {}).await.unwrap();
     res1 > res2
@@ -49,6 +49,11 @@ async fn run_game(player1: Addr<HumanPlayer>, player2: Addr<AiPlayer>) -> bool {
 async fn main() {
     let player1 = HumanPlayer {}.start();
     let player2 = AiPlayer {}.start();
-    let res = run_game(player1, player2).await;
-    println!("Player 1 wins: {}", res);
+    let game_res1 = run_game(player1, player2).await;
+    println!("Player 1 wins: {}", game_res1);
+
+    let player3 = AiPlayer {}.start();
+    let player4 = AiPlayer {}.start();
+    let game_res2 = run_game(player3, player4).await;
+    println!("Player 3 wins: {}", game_res2);
 }
