@@ -1,9 +1,9 @@
+use actix::dev::ToEnvelope;
 use actix::{Actor, Addr, Handler, Message};
 
 #[derive(Message)]
 #[rtype(usize)]
 struct MoveRequest;
-
 
 // -------------------
 struct HumanPlayer {}
@@ -39,7 +39,14 @@ impl Handler<MoveRequest> for AiPlayer {
     }
 }
 
-async fn run_game(player1: Addr<impl Handler<MoveRequest>>, player2: Addr<impl Handler<MoveRequest>>) -> bool {
+async fn run_game<Player1: Handler<MoveRequest>, Player2: Handler<MoveRequest>>(
+    player1: Addr<Player1>,
+    player2: Addr<Player2>,
+) -> bool
+where
+    <Player1 as Actor>::Context: ToEnvelope<Player1, MoveRequest>,
+    <Player2 as Actor>::Context: ToEnvelope<Player2, MoveRequest>,
+{
     let res1 = player1.send(MoveRequest {}).await.unwrap();
     let res2 = player2.send(MoveRequest {}).await.unwrap();
     res1 > res2
